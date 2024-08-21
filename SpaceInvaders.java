@@ -1,8 +1,12 @@
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import javax.swing.*;
 
-public class SpaceInvaders extends JPanel {
+public class SpaceInvaders extends JPanel implements ActionListener, KeyListener {
     class Block {
         int x;
         int y;
@@ -41,12 +45,16 @@ public class SpaceInvaders extends JPanel {
     int shipHeight = tileSize;
     int shipX = tileSize * columns / 2 - tileSize;
     int shipY = boardHeight - tileSize * 2;
-
+    int shipVelocityX = tileSize;
     Block ship;
+
+    Timer gameLoop;
 
     SpaceInvaders() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setBackground(Color.black);
+        setFocusable(true);
+        addKeyListener(this);
 
         // Load images
         shipImg = new ImageIcon(getClass().getResource("./images/ship.png")).getImage();
@@ -62,8 +70,12 @@ public class SpaceInvaders extends JPanel {
         alienImgArray.add(alienYellowImg);
 
         ship = new Block(shipX, shipY, shipWidth, shipHeight, shipImg);
+
+        gameLoop = new Timer(1000/60, this);
+        gameLoop.start();
     }
 
+    @Override
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         draw(g);
@@ -71,5 +83,26 @@ public class SpaceInvaders extends JPanel {
 
     public void draw(Graphics g){
         g.drawImage(ship.img, ship.x, ship.y, ship.width, ship.height, null);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        repaint();
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {}
+
+    @Override
+    public void keyPressed(KeyEvent e) {}
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_LEFT && ship.x - shipVelocityX >= 0) {
+            ship.x -= shipVelocityX;
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_RIGHT && ship.x + ship.width + shipVelocityX <= boardWidth) {
+            ship.x += shipVelocityX;
+        }
     }
 }
