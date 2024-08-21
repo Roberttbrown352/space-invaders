@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
 
-public class SpaceInvaders extends JPanel implements ActionListener, KeyListener {
+public class SpaceInvaders extends JPanel implements ActionListener, KeyListener{
     class Block {
         int x;
         int y;
@@ -62,9 +62,15 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
     int alienColumns = 3;
     int alienCount = 0;
 
+    // Bullet Variables
+    ArrayList<Block> bulletArray;
+    int bulletWidth = tileSize / 8;
+    int bulletHeight = tileSize / 2;
+    int bulletVelocityY = -10;
+
     Timer gameLoop;
 
-    SpaceInvaders() {
+    SpaceInvaders(){
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setBackground(Color.black);
         setFocusable(true);
@@ -85,6 +91,7 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
 
         ship = new Block(shipX, shipY, shipWidth, shipHeight, shipImg);
         alienArray = new ArrayList<Block>();
+        bulletArray = new ArrayList<Block>();
 
         gameLoop = new Timer(1000/60, this);
         createAliens();
@@ -106,6 +113,16 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
                 g.drawImage(alien.img, alien.x, alien.y, alien.width, alien.height, null);
             }
         }
+
+        g.setColor(Color.white);
+
+        for(int i = 0; i < bulletArray.size(); i++){
+            Block bullet = bulletArray.get(i);
+
+            if (!bullet.used){
+                g.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            }
+        }
     }
 
     public void move(){
@@ -123,9 +140,27 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
                 }
             }
         }
+
+        for(int i = 0; i < bulletArray.size(); i++){
+            Block bullet = bulletArray.get(i);
+            bullet.y += bulletVelocityY;
+
+            for(int j = 0; j < alienArray.size(); j++){
+                Block alien = alienArray.get(j);
+                if(!bullet.used && alien.alive && detectCollision(bullet, alien)){
+                    bullet.used = true;
+                    alien.alive = false;
+                    alienCount--;
+                }
+            }
+        }
+
+        while (!bulletArray.isEmpty() && (bulletArray.get(0).used || bulletArray.get(0).y < 0)){
+            bulletArray.remove(0);
+        }
     }
 
-    public void createAliens() {
+    public void createAliens(){
         Random random = new Random();
         for (int r = 0; r < alienRows; r++){
             for (int c = 0; c < alienColumns; c++){
@@ -143,6 +178,13 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
         alienCount = alienArray.size();
     }
 
+    public boolean detectCollision(Block a, Block b){
+        return a.x < b.x + b.width &&
+               a.x + a.width > b.x &&
+               a.y < b.y + b.height &&
+               a.y + a.height > b.y;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         move();
@@ -150,18 +192,22 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void keyTyped(KeyEvent e){}
 
     @Override
-    public void keyPressed(KeyEvent e) {}
+    public void keyPressed(KeyEvent e){}
 
     @Override
-    public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_LEFT && ship.x - shipVelocityX >= 0) {
+    public void keyReleased(KeyEvent e){
+        if (e.getKeyCode() == KeyEvent.VK_LEFT && ship.x - shipVelocityX >= 0){
             ship.x -= shipVelocityX;
         }
-        else if (e.getKeyCode() == KeyEvent.VK_RIGHT && ship.x + ship.width + shipVelocityX <= boardWidth) {
+        else if (e.getKeyCode() == KeyEvent.VK_RIGHT && ship.x + ship.width + shipVelocityX <= boardWidth){
             ship.x += shipVelocityX;
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_SPACE){
+            Block bullet = new Block(ship.x + shipWidth * 15 / 32, ship.y, bulletWidth, bulletHeight, null);
+            bulletArray.add(bullet);
         }
     }
 }
