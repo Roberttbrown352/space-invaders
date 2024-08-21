@@ -155,8 +155,18 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
             }
         }
 
+        // Bullet Cleanup
         while (!bulletArray.isEmpty() && (bulletArray.get(0).used || bulletArray.get(0).y < 0)){
             bulletArray.remove(0);
+        }
+
+        // Next Level
+        if (alienCount == 0){
+            alienColumns = Math.min(alienColumns + 1, columns/2 - 2);
+            alienRows = Math.min(alienRows + 1, rows - 6);
+            alienArray.clear();
+            bulletArray.clear();
+            createAliens();
         }
     }
 
