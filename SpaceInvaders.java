@@ -3,7 +3,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Random;
 import javax.swing.*;
 
 public class SpaceInvaders extends JPanel implements ActionListener, KeyListener {
@@ -48,6 +50,18 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
     int shipVelocityX = tileSize;
     Block ship;
 
+    // Alien Variables
+    ArrayList<Block> alienArray;
+    int alienWidth = tileSize * 2;
+    int alienHeight = tileSize;
+    int alienX = tileSize;
+    int alienY = tileSize;
+    int alienVelocityX = 1;
+
+    int alienRows = 2;
+    int alienColumns = 3;
+    int alienCount = 0;
+
     Timer gameLoop;
 
     SpaceInvaders() {
@@ -70,8 +84,10 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
         alienImgArray.add(alienYellowImg);
 
         ship = new Block(shipX, shipY, shipWidth, shipHeight, shipImg);
+        alienArray = new ArrayList<Block>();
 
         gameLoop = new Timer(1000/60, this);
+        createAliens();
         gameLoop.start();
     }
 
@@ -83,10 +99,53 @@ public class SpaceInvaders extends JPanel implements ActionListener, KeyListener
 
     public void draw(Graphics g){
         g.drawImage(ship.img, ship.x, ship.y, ship.width, ship.height, null);
+
+        for(int i = 0; i < alienArray.size(); i++){
+            Block alien = alienArray.get(i);
+            if(alien.alive){
+                g.drawImage(alien.img, alien.x, alien.y, alien.width, alien.height, null);
+            }
+        }
+    }
+
+    public void move(){
+        for(int i = 0; i < alienArray.size(); i++){
+            Block alien = alienArray.get(i);
+            if(alien.alive){
+                alien.x += alienVelocityX;
+                if(alien.x + alienWidth >= boardWidth || alien.x <= 0){
+                    alienVelocityX *= -1;
+                    alien.x += alienVelocityX * 2;
+
+                    for(int j = 0; j < alienArray.size(); j++){
+                        alienArray.get(j).y += alienHeight;
+                    }
+                }
+            }
+        }
+    }
+
+    public void createAliens() {
+        Random random = new Random();
+        for (int r = 0; r < alienRows; r++){
+            for (int c = 0; c < alienColumns; c++){
+                int randomImageIndex = random.nextInt(alienImgArray.size());
+                Block alien = new Block(
+                        alienX + c * alienWidth,
+                        alienY + r * alienHeight,
+                        alienWidth,
+                        alienHeight,
+                        alienImgArray.get(randomImageIndex)
+                    );
+                alienArray.add(alien);
+            }
+        }
+        alienCount = alienArray.size();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        move();
         repaint();
     }
 
